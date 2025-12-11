@@ -1,7 +1,6 @@
 package app;
 
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import java.awt.CardLayout;
 import panels.*;
 
@@ -19,12 +18,10 @@ public class MainWindow extends JFrame {
         this.controller = controller;
         this.cardLayout = new CardLayout();
         
-        // Set up the frame
         setLayout(cardLayout);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
         
-        // Create all panels
         this.roleSelectionPanel = new RoleSelectionPanel(controller);
         this.adminLoginPanel = new AdminLoginPanel(controller);
         this.customerLoginPanel = new CustomerLoginPanel(controller);
@@ -32,7 +29,6 @@ public class MainWindow extends JFrame {
         this.customerFormPanel = new CustomerFormPanel(controller);
         this.formBuilderPanel = new FormBuilderPanel(controller);
         
-        // Add panels to the card layout
         add(roleSelectionPanel, "RoleSelection");
         add(adminLoginPanel, "AdminLogin");
         add(customerLoginPanel, "CustomerLogin");
@@ -53,6 +49,10 @@ public class MainWindow extends JFrame {
     
     public void showCustomerLogin() {
         cardLayout.show(getContentPane(), "CustomerLogin");
+    }
+    
+    public void showAdminDashboard() {
+        cardLayout.show(getContentPane(), "AdminDashboard");
     }
 }
 

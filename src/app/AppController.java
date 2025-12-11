@@ -1,7 +1,5 @@
 package app;
 
-import panels.*;
-
 public class AppController {
     private DataStore dataStore;
     private MainWindow mainWindow;
@@ -9,9 +7,8 @@ public class AppController {
     public AppController() {
         this.mainWindow = new MainWindow(this);
     }
-    
+
     public void start() {
-        // Initialize DataStore singleton
         this.dataStore = DataStore.getInstance();
         this.dataStore.loadFromDisk();
     }
@@ -26,6 +23,19 @@ public class AppController {
     
     public void showCustomerLogin() {
         mainWindow.showCustomerLogin();
+    }
+    
+    public boolean handleAdminLogin(String username, String password) {
+        if (dataStore.checkCredentials(username, password)) {
+            mainWindow.showAdminDashboard();
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    public DataStore getDataStore() {
+        return dataStore;
     }
 }
 

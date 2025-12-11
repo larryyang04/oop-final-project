@@ -13,6 +13,7 @@ public class MainWindow extends JFrame {
     private AdminDashboardPanel adminDashboardPanel;
     private CustomerFormPanel customerFormPanel;
     private FormBuilderPanel formBuilderPanel;
+    private CaseBuilderPanel caseBuilderPanel;
     
     public MainWindow(AppController controller) {
         this.controller = controller;
@@ -28,6 +29,7 @@ public class MainWindow extends JFrame {
         this.adminDashboardPanel = new AdminDashboardPanel(controller);
         this.customerFormPanel = new CustomerFormPanel(controller);
         this.formBuilderPanel = new FormBuilderPanel(controller);
+        this.caseBuilderPanel = new CaseBuilderPanel(controller);
         
         add(roleSelectionPanel, "RoleSelection");
         add(adminLoginPanel, "AdminLogin");
@@ -35,6 +37,7 @@ public class MainWindow extends JFrame {
         add(adminDashboardPanel, "AdminDashboard");
         add(customerFormPanel, "CustomerForm");
         add(formBuilderPanel, "FormBuilder");
+        add(caseBuilderPanel, "CaseBuilder");
         
         setVisible(true);
     }
@@ -52,7 +55,27 @@ public class MainWindow extends JFrame {
     }
     
     public void showAdminDashboard() {
+        adminDashboardPanel.refreshDashboard();
         cardLayout.show(getContentPane(), "AdminDashboard");
+    }
+    
+    public void showFormBuilder() {
+        cardLayout.show(getContentPane(), "FormBuilder");
+    }
+    
+    // For editing a template
+    public void showFormBuilderWithTemplate(model.FormTemplate template) {
+        formBuilderPanel.loadTemplateForEditing(template);
+        cardLayout.show(getContentPane(), "FormBuilder");
+    }
+
+    public void showCaseBuilder() {
+        caseBuilderPanel.refreshTemplates();
+        cardLayout.show(getContentPane(), "CaseBuilder");
+    }
+    
+    public AdminDashboardPanel getAdminDashboardPanel() {
+        return adminDashboardPanel;
     }
 }
 

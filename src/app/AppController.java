@@ -37,5 +37,26 @@ public class AppController {
     public DataStore getDataStore() {
         return dataStore;
     }
+    
+    public void showFormBuilder() {
+        mainWindow.showFormBuilder();
+    }
+    
+    public void showFormBuilderWithTemplate(model.FormTemplate template) {
+        mainWindow.showFormBuilderWithTemplate(template);
+    }
+    
+    public void showAdminDashboard() {
+        mainWindow.showAdminDashboard();
+    }
+    
+    public void showAdminDashboardWithTemplates() {
+        mainWindow.showAdminDashboard();
+        mainWindow.getAdminDashboardPanel().showTemplatesViewAndRefresh();
+    }
+    
+    public void showCaseBuilder() {
+        mainWindow.showCaseBuilder();
+    }
 }
 

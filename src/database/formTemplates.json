@@ -1,0 +1,272 @@
+[
+  {
+    "id": 1,
+    "name": "Basic Fleet Information",
+    "questions": [
+      {
+        "id": 1,
+        "label": "How many vehicles are in your fleet?",
+        "required": true
+      },
+      {
+        "id": 2,
+        "label": "What types of vehicles do you operate?",
+        "required": true
+      },
+      {
+        "id": 3,
+        "label": "What is the average age of your vehicles?",
+        "required": true
+      },
+      {
+        "id": 4,
+        "label": "Do you own or lease your vehicles?",
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Commercial Vehicle Details",
+    "questions": [
+      {
+        "id": 5,
+        "label": "What is the total value of your commercial vehicles?",
+        "required": true
+      },
+      {
+        "id": 6,
+        "label": "What is the gross vehicle weight rating (GVWR) of your heaviest truck?",
+        "required": true
+      },
+      {
+        "id": 7,
+        "label": "Do you have any vehicles with specialized equipment?",
+        "required": false
+      },
+      {
+        "id": 8,
+        "label": "What is the primary use of your commercial vehicles?",
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Driver Qualifications",
+    "questions": [
+      {
+        "id": 9,
+        "label": "How many drivers do you employ?",
+        "required": true
+      },
+      {
+        "id": 10,
+        "label": "What is the average years of experience of your drivers?",
+        "required": true
+      },
+      {
+        "id": 11,
+        "label": "Do all drivers have valid commercial driver's licenses (CDL)?",
+        "required": true
+      },
+      {
+        "id": 12,
+        "label": "Do you provide driver safety training programs?",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Cargo and Route Information",
+    "questions": [
+      {
+        "id": 13,
+        "label": "What types of cargo do you typically transport?",
+        "required": true
+      },
+      {
+        "id": 14,
+        "label": "What is the average value of cargo per shipment?",
+        "required": true
+      },
+      {
+        "id": 15,
+        "label": "What is the average distance per trip?",
+        "required": true
+      },
+      {
+        "id": 16,
+        "label": "Do you operate primarily locally, regionally, or nationally?",
+        "required": true
+      },
+      {
+        "id": 17,
+        "label": "Do you transport hazardous materials?",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Insurance Coverage Needs",
+    "questions": [
+      {
+        "id": 18,
+        "label": "What is your current liability coverage limit?",
+        "required": true
+      },
+      {
+        "id": 19,
+        "label": "Do you need cargo insurance coverage?",
+        "required": true
+      },
+      {
+        "id": 20,
+        "label": "What coverage limit are you seeking for cargo insurance?",
+        "required": false
+      },
+      {
+        "id": 21,
+        "label": "Do you need physical damage coverage for your vehicles?",
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Safety and Compliance",
+    "questions": [
+      {
+        "id": 22,
+        "label": "What is your DOT safety rating?",
+        "required": true
+      },
+      {
+        "id": 23,
+        "label": "How many accidents have you had in the past 3 years?",
+        "required": true
+      },
+      {
+        "id": 24,
+        "label": "How many moving violations have your drivers received in the past year?",
+        "required": true
+      },
+      {
+        "id": 25,
+        "label": "Do you have a formal safety management program?",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Business Operations",
+    "questions": [
+      {
+        "id": 26,
+        "label": "How many years have you been in business?",
+        "required": true
+      },
+      {
+        "id": 27,
+        "label": "What is your annual revenue?",
+        "required": true
+      },
+      {
+        "id": 28,
+        "label": "How many employees do you have?",
+        "required": true
+      },
+      {
+        "id": 29,
+        "label": "What percentage of your business is trucking-related?",
+        "required": false
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Specialized Trucking",
+    "questions": [
+      {
+        "id": 30,
+        "label": "Do you operate refrigerated trucks?",
+        "required": true
+      },
+      {
+        "id": 31,
+        "label": "Do you transport temperature-sensitive cargo?",
+        "required": false
+      },
+      {
+        "id": 32,
+        "label": "Do you have flatbed or specialized hauling equipment?",
+        "required": false
+      },
+      {
+        "id": 33,
+        "label": "What percentage of your fleet requires specialized insurance?",
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "name": "Long-Haul Trucking",
+    "questions": [
+      {
+        "id": 34,
+        "label": "What percentage of your trips are interstate?",
+        "required": true
+      },
+      {
+        "id": 35,
+        "label": "How many nights per week do drivers typically stay away from home?",
+        "required": true
+      },
+      {
+        "id": 36,
+        "label": "Do you have dedicated routes or do you take load board assignments?",
+        "required": true
+      },
+      {
+        "id": 37,
+        "label": "What is your average trip length in miles?",
+        "required": true
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "name": "Local Delivery Services",
+    "questions": [
+      {
+        "id": 38,
+        "label": "What is your primary service area radius?",
+        "required": true
+      },
+      {
+        "id": 39,
+        "label": "How many deliveries do you make per day on average?",
+        "required": true
+      },
+      {
+        "id": 40,
+        "label": "Do you provide same-day delivery services?",
+        "required": false
+      },
+      {
+        "id": 41,
+        "label": "What types of businesses do you primarily serve?",
+        "required": true
+      },
+      {
+        "id": 42,
+        "label": "Do you require proof of delivery documentation?",
+        "required": false
+      }
+    ]
+  }
+]

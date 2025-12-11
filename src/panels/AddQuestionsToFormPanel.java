@@ -7,45 +7,36 @@ import java.awt.event.ActionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import app.AppController;
-import model.FormTemplate;
-import model.QuestionTemplate;
+import model.Case;
+import model.Form;
+import model.QuestionInstance;
 
-public class FormBuilderPanel extends JPanel {
+public class AddQuestionsToFormPanel extends JPanel {
     private AppController controller;
-    private JTextField templateNameField;
+    private Case currentCase;
     private JTextField questionField;
     private JCheckBox requiredCheckBox;
     private DefaultListModel<String> questionListModel;
     private JList<String> questionList;
-    private List<QuestionTemplate> questionTemplates;
-    private int nextQuestionId;
-    private boolean isEditMode;
-    private int editingTemplateId;
-    private java.util.Set<Integer> originalQuestionIds;
-    private JLabel titleLabel;
-    private JButton saveButton;
+    private List<QuestionInstance> newQuestions;
     private JButton deleteQuestionButton;
+    private JLabel caseInfoLabel;
     
-    public FormBuilderPanel(AppController controller) {
+    public AddQuestionsToFormPanel(AppController controller) {
         this.controller = controller;
-        this.questionTemplates = new ArrayList<>();
-        this.nextQuestionId = 1;
-        this.isEditMode = false;
-        this.editingTemplateId = -1;
+        this.newQuestions = new ArrayList<>();
         
         setLayout(new BorderLayout());
         
         // Back button panel
         JPanel backButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         backButtonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        JButton backButton = new JButton("← Back to Template Management");
+        JButton backButton = new JButton("← Back to Case Details");
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // This works because admin dashboard is holding the template mangement view state
                 controller.showAdminDashboard();
             }
         });
@@ -57,25 +48,20 @@ public class FormBuilderPanel extends JPanel {
         contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
         // Title
-        titleLabel = new JLabel("Create Form Template");
+        JLabel titleLabel = new JLabel("Add Questions to Form");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 20f));
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         contentPanel.add(titleLabel);
-        contentPanel.add(Box.createVerticalStrut(20));
+        contentPanel.add(Box.createVerticalStrut(10));
         
-        // Template name section
-        JLabel nameLabel = new JLabel("Template Name:");
-        nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        contentPanel.add(nameLabel);
-        
-        templateNameField = new JTextField(30);
-        templateNameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        templateNameField.setAlignmentX(Component.LEFT_ALIGNMENT);
-        contentPanel.add(templateNameField);
+        // Case info
+        caseInfoLabel = new JLabel();
+        caseInfoLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(caseInfoLabel);
         contentPanel.add(Box.createVerticalStrut(20));
         
         // Questions preview section
-        JLabel previewLabel = new JLabel("Questions Preview:");
+        JLabel previewLabel = new JLabel("Questions to Add:");
         previewLabel.setFont(previewLabel.getFont().deriveFont(Font.BOLD, 14f));
         previewLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         contentPanel.add(previewLabel);
@@ -152,13 +138,13 @@ public class FormBuilderPanel extends JPanel {
         contentPanel.add(Box.createVerticalStrut(30));
         
         // Save button
-        saveButton = new JButton("Save Template");
+        JButton saveButton = new JButton("Save Questions");
         saveButton.setAlignmentX(Component.LEFT_ALIGNMENT);
         saveButton.setFont(saveButton.getFont().deriveFont(Font.BOLD, 14f));
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                saveTemplate();
+                saveQuestions();
             }
         });
         contentPanel.add(saveButton);
@@ -172,6 +158,16 @@ public class FormBuilderPanel extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
     
+    public void loadCase(Case caseObj) {
+        this.currentCase = caseObj;
+        if (caseObj != null) {
+            caseInfoLabel.setText("Case Code: " + caseObj.getCode() + " | Customer: " + 
+                caseObj.getFirstName() + " " + caseObj.getLastName());
+        }
+        // Reset form
+        resetForm();
+    }
+    
     private void addQuestion() {
         String questionText = questionField.getText().trim();
         if (questionText.isEmpty()) {
@@ -180,8 +176,8 @@ public class FormBuilderPanel extends JPanel {
         }
         
         boolean required = requiredCheckBox.isSelected();
-        QuestionTemplate question = new QuestionTemplate(nextQuestionId++, questionText, required);
-        questionTemplates.add(question);
+        QuestionInstance question = new QuestionInstance(0, questionText, required); // ID will be set when saving
+        newQuestions.add(question);
         
         // Update preview list
         String displayText = questionText + (required ? " *" : "");
@@ -197,20 +193,12 @@ public class FormBuilderPanel extends JPanel {
     
     private void deleteSelectedQuestion() {
         int selectedIndex = questionList.getSelectedIndex();
-        if (selectedIndex < 0 || selectedIndex >= questionTemplates.size()) {
+        if (selectedIndex < 0 || selectedIndex >= newQuestions.size()) {
             return;
         }
         
-        // Get the question to delete
-        QuestionTemplate questionToDelete = questionTemplates.get(selectedIndex);
-        
-        // Remove from originalQuestionIds if it exists (for edit mode)
-        if (originalQuestionIds != null) {
-            originalQuestionIds.remove(questionToDelete.getId());
-        }
-        
-        // Remove from questionTemplates list
-        questionTemplates.remove(selectedIndex);
+        // Remove from newQuestions list
+        newQuestions.remove(selectedIndex);
         
         // Remove from list model
         questionListModel.remove(selectedIndex);
@@ -220,130 +208,51 @@ public class FormBuilderPanel extends JPanel {
         deleteQuestionButton.setEnabled(false);
     }
     
-    private void saveTemplate() {
-        String templateName = templateNameField.getText().trim();
-        if (templateName.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter a template name.", "Error", JOptionPane.ERROR_MESSAGE);
+    private void saveQuestions() {
+        if (currentCase == null) {
+            JOptionPane.showMessageDialog(this, "No case loaded.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        if (questionTemplates.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please add at least one question to the template.", "Error", JOptionPane.ERROR_MESSAGE);
+        if (newQuestions.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please add at least one question.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
         
-        FormTemplate template;
-        
-        if (isEditMode) {
-            // Update existing template
-            template = new FormTemplate(editingTemplateId, templateName);
-            
-            // Add all questions to template (preserve existing question IDs, generate new ones for new questions)
-            for (QuestionTemplate question : questionTemplates) {
-                int questionId;
-                if (originalQuestionIds != null && originalQuestionIds.contains(question.getId())) {
-                    // Preserve existing question ID from original template
-                    questionId = question.getId();
-                } else {
-                    // Generate new question ID for newly added questions
-                    questionId = controller.getDataStore().getNextQuestionId();
-                }
-                QuestionTemplate newQuestion = new QuestionTemplate(
-                    questionId,
-                    question.getLabel(),
-                    question.isRequired()
-                );
-                template.addQuestionTemplate(newQuestion);
-            }
-            
-            // Update existing template in DataStore
-            controller.getDataStore().updateFormTemplate(template);
-            JOptionPane.showMessageDialog(this, "Template updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            // Create new template
-            int templateId = controller.getDataStore().getNextTemplateId();
-            template = new FormTemplate(templateId, templateName);
-            
-            // Add all questions to template (with auto-generated IDs)
-            for (QuestionTemplate question : questionTemplates) {
-                int questionId = controller.getDataStore().getNextQuestionId();
-                QuestionTemplate newQuestion = new QuestionTemplate(
-                    questionId,
-                    question.getLabel(),
-                    question.isRequired()
-                );
-                template.addQuestionTemplate(newQuestion);
-            }
-            
-            // Save to DataStore (this will also write to JSON)
-            controller.getDataStore().addFormTemplate(template);
-            JOptionPane.showMessageDialog(this, "Template saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        Form form = currentCase.getForm();
+        if (form == null) {
+            JOptionPane.showMessageDialog(this, "No form available for this case.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
         }
         
-        // Reset form
-        resetForm();
+        // Generate IDs for new questions and create QuestionInstances
+        List<QuestionInstance> questionsToAdd = new ArrayList<>();
+        for (QuestionInstance question : newQuestions) {
+            int questionId = controller.getDataStore().getNextQuestionId();
+            QuestionInstance newQuestion = new QuestionInstance(questionId, question.getLabel(), question.isRequired());
+            questionsToAdd.add(newQuestion);
+        }
         
-        // Navigate back to templates management view
-        controller.showAdminDashboardWithTemplates();
+        // Add multiple questions (this clears mostRecentQuestions and adds new ones)
+        form.addMultipleQuestions(questionsToAdd);
+        
+        // Save case to DataStore
+        controller.getDataStore().saveCase(currentCase);
+        
+        JOptionPane.showMessageDialog(this, "Questions added successfully! The customer will see these as new questions.", 
+            "Success", JOptionPane.INFORMATION_MESSAGE);
+        
+        // Navigate back to case detail view
+        controller.showAdminDashboardAndRefreshCase(currentCase);
     }
     
     private void resetForm() {
-        templateNameField.setText("");
         questionField.setText("");
         requiredCheckBox.setSelected(false);
         questionListModel.clear();
-        questionTemplates.clear();
-        nextQuestionId = 1;
-        isEditMode = false;
-        editingTemplateId = -1;
-        originalQuestionIds = null;
-        titleLabel.setText("Create Form Template");
-        saveButton.setText("Save Template");
+        newQuestions.clear();
         questionList.clearSelection();
         deleteQuestionButton.setEnabled(false);
-    }
-    
-    public void loadTemplateForEditing(FormTemplate template) {
-        // Reset form first
-        resetForm();
-        
-        // Set edit mode
-        isEditMode = true;
-        editingTemplateId = template.getId();
-        
-        // Track original question IDs to preserve them when saving
-        originalQuestionIds = new HashSet<>();
-        
-        // Update UI
-        titleLabel.setText("Edit Form Template");
-        saveButton.setText("Update Template");
-        
-        // Load template name
-        templateNameField.setText(template.getName());
-        
-        // Load questions and track their original IDs
-        for (QuestionTemplate question : template.getQuestions()) {
-            questionTemplates.add(question);
-            originalQuestionIds.add(question.getId());
-            
-            // Update preview list
-            String displayText = question.getLabel() + (question.isRequired() ? " *" : "");
-            questionListModel.addElement(displayText);
-        }
-        
-        // Update nextQuestionId to be higher than any existing question ID
-        int maxId = 0;
-        for (QuestionTemplate q : questionTemplates) {
-            if (q.getId() > maxId) {
-                maxId = q.getId();
-            }
-        }
-        nextQuestionId = maxId + 1;
-    }
-    
-    public void renderFilledForm(model.Form form) {
-        // This method is kept for backward compatibility but not used in template builder
-        // Could be used for preview functionality later
     }
 }
 

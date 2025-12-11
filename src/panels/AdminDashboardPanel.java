@@ -9,8 +9,11 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 import app.AppController;
 import model.Case;
+import model.CaseStatus;
+import model.Form;
 import model.FormTemplate;
 import model.QuestionTemplate;
+import model.QuestionInstance;
 
 public class AdminDashboardPanel extends JPanel {
     private AppController controller;
@@ -23,6 +26,9 @@ public class AdminDashboardPanel extends JPanel {
     private JList<String> casesJList;
     private JPanel templateDetailPanel;
     private JPanel templateDetailContentPanel;
+    private JPanel caseDetailPanel;
+    private JPanel caseDetailContentPanel;
+    private Case currentViewingCase;
 
     public AdminDashboardPanel(AppController controller) {
         this.controller = controller;
@@ -35,10 +41,12 @@ public class AdminDashboardPanel extends JPanel {
         JPanel dashboardView = buildDashboardView();
         JPanel templatesView = buildTemplatesView();
         templateDetailPanel = buildTemplateDetailView();
+        caseDetailPanel = buildCaseDetailView();
 
         cardPanel.add(dashboardView, "dashboard");
         cardPanel.add(templatesView, "templates");
         cardPanel.add(templateDetailPanel, "templateDetail");
+        cardPanel.add(caseDetailPanel, "caseDetail");
 
         add(cardPanel, BorderLayout.CENTER);
     }
@@ -93,6 +101,20 @@ public class AdminDashboardPanel extends JPanel {
         casesListModel = new DefaultListModel<>();
         casesJList = new JList<>(casesListModel);
         casesJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        // Add double-click listener to view case details
+        casesJList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int selectedIndex = casesJList.getSelectedIndex();
+                    if (selectedIndex >= 0 && casesList != null && selectedIndex < casesList.size()) {
+                        Case selectedCase = casesList.get(selectedIndex);
+                        showCaseDetail(selectedCase);
+                    }
+                }
+            }
+        });
         
         JScrollPane casesScrollPane = new JScrollPane(casesJList);
         casesScrollPane.setPreferredSize(new Dimension(400, 200));
@@ -193,7 +215,7 @@ public class AdminDashboardPanel extends JPanel {
                 casesListModel.addElement("No cases found.");
             } else {
                 for (Case c : casesList) {
-                    String displayText = "ID: " + c.getId() + " - " + c.getFirstName() + " " + c.getLastName();
+                    String displayText = "ID: " + c.getId() + " - " + c.getFirstName() + " " + c.getLastName() + " [" + c.getStatus() + "]";
                     casesListModel.addElement(displayText);
                 }
             }
@@ -261,6 +283,49 @@ public class AdminDashboardPanel extends JPanel {
         templateDetailContentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
         JScrollPane scrollPane = new JScrollPane(templateDetailContentPanel);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setBorder(null);
+        
+        wrapper.add(scrollPane, BorderLayout.CENTER);
+        return wrapper;
+    }
+    
+    private JPanel buildCaseDetailView() {
+        JPanel wrapper = new JPanel(new BorderLayout());
+        
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        // Left side: Back button and title
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton backButton = new JButton("← Back to Dashboard");
+        backButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showDashboardView();
+            }
+        });
+        leftPanel.add(backButton);
+        
+        JLabel titleLabel = new JLabel("Case Details");
+        titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 20f));
+        leftPanel.add(titleLabel);
+        
+        headerPanel.add(leftPanel, BorderLayout.WEST);
+        
+        // Right side: Action buttons (will be populated when showing details)
+        JPanel buttonContainer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonContainer.setName("buttonContainer");
+        headerPanel.add(buttonContainer, BorderLayout.EAST);
+        
+        wrapper.add(headerPanel, BorderLayout.NORTH);
+        
+        // Content will be populated when showing details
+        caseDetailContentPanel = new JPanel();
+        caseDetailContentPanel.setLayout(new BoxLayout(caseDetailContentPanel, BoxLayout.Y_AXIS));
+        caseDetailContentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JScrollPane scrollPane = new JScrollPane(caseDetailContentPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setBorder(null);
         
@@ -389,6 +454,170 @@ public class AdminDashboardPanel extends JPanel {
     private void editTemplate(FormTemplate template) {
         controller.showFormBuilderWithTemplate(template);
     }
+    
+    private void showCaseDetail(Case caseObj) {
+        if (caseDetailPanel == null || caseDetailContentPanel == null) {
+            return;
+        }
+        
+        // Store current viewing case
+        currentViewingCase = caseObj;
+        
+        // Clear existing content
+        caseDetailContentPanel.removeAll();
+        
+        // Add action buttons to header
+        JPanel headerPanel = (JPanel) caseDetailPanel.getComponent(0);
+        JPanel buttonContainer = null;
+        for (Component comp : headerPanel.getComponents()) {
+            if (comp instanceof JPanel && "buttonContainer".equals(comp.getName())) {
+                buttonContainer = (JPanel) comp;
+                break;
+            }
+        }
+        
+        if (buttonContainer != null) {
+            buttonContainer.removeAll();
+            
+            // Approve Case button (only show if status is not ACCEPTED)
+            if (caseObj.getStatus() != CaseStatus.ACCEPTED) {
+                JButton approveButton = new JButton("Approve Case");
+                approveButton.setForeground(new Color(0, 128, 0)); // Green color
+                approveButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        approveCase(caseObj);
+                    }
+                });
+                buttonContainer.add(approveButton);
+            }
+            
+            // Add Questions button
+            JButton addQuestionsButton = new JButton("Add Questions");
+            addQuestionsButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    showAddQuestionsToForm(caseObj);
+                }
+            });
+            buttonContainer.add(addQuestionsButton);
+            
+            buttonContainer.revalidate();
+            buttonContainer.repaint();
+        }
+        
+        // Add case metadata
+        JLabel caseLabel = new JLabel("Case ID: " + caseObj.getId());
+        caseLabel.setFont(caseLabel.getFont().deriveFont(Font.BOLD, 18f));
+        caseLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        caseDetailContentPanel.add(caseLabel);
+        
+        JLabel codeLabel = new JLabel("Code: " + caseObj.getCode());
+        codeLabel.setFont(codeLabel.getFont().deriveFont(Font.PLAIN, 12f));
+        codeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        caseDetailContentPanel.add(codeLabel);
+        
+        JLabel nameLabel = new JLabel("Name: " + caseObj.getFirstName() + " " + caseObj.getLastName());
+        nameLabel.setFont(nameLabel.getFont().deriveFont(Font.PLAIN, 12f));
+        nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        caseDetailContentPanel.add(nameLabel);
+        
+        JLabel emailLabel = new JLabel("Email: " + caseObj.getEmail());
+        emailLabel.setFont(emailLabel.getFont().deriveFont(Font.PLAIN, 12f));
+        emailLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        caseDetailContentPanel.add(emailLabel);
+        
+        JLabel statusLabel = new JLabel("Status: " + caseObj.getStatus());
+        statusLabel.setFont(statusLabel.getFont().deriveFont(Font.PLAIN, 12f));
+        statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        caseDetailContentPanel.add(statusLabel);
+        
+        caseDetailContentPanel.add(Box.createVerticalStrut(10));
+        caseDetailContentPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
+        caseDetailContentPanel.add(Box.createVerticalStrut(15));
+        
+        // Add form questions header
+        Form form = caseObj.getForm();
+        if (form != null && form.getQuestions() != null) {
+            JLabel questionsLabel = new JLabel("Form Questions (" + form.getQuestions().size() + "):");
+            questionsLabel.setFont(questionsLabel.getFont().deriveFont(Font.BOLD, 14f));
+            questionsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            caseDetailContentPanel.add(questionsLabel);
+            caseDetailContentPanel.add(Box.createVerticalStrut(10));
+            
+            // Add each question
+            int questionNumber = 1;
+            for (QuestionInstance question : form.getQuestions()) {
+                JPanel questionPanel = new JPanel();
+                questionPanel.setLayout(new BoxLayout(questionPanel, BoxLayout.Y_AXIS));
+                questionPanel.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Color.LIGHT_GRAY),
+                    BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                ));
+                questionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                
+                JLabel qNumberLabel = new JLabel("Question " + questionNumber);
+                qNumberLabel.setFont(qNumberLabel.getFont().deriveFont(Font.BOLD, 12f));
+                questionPanel.add(qNumberLabel);
+                
+                JLabel qTextLabel = new JLabel(question.getLabel());
+                qTextLabel.setFont(qTextLabel.getFont().deriveFont(Font.PLAIN, 12f));
+                questionPanel.add(qTextLabel);
+                
+                JLabel requiredLabel = new JLabel("Required: " + (question.isRequired() ? "Yes" : "No"));
+                requiredLabel.setFont(requiredLabel.getFont().deriveFont(Font.PLAIN, 11f));
+                requiredLabel.setForeground(question.isRequired() ? Color.RED : Color.GRAY);
+                questionPanel.add(requiredLabel);
+                
+                String answerValue = question.getAnswerValue();
+                String answerDisplay = (answerValue != null && !answerValue.trim().isEmpty()) 
+                    ? answerValue 
+                    : "Not answered";
+                JLabel answerLabel = new JLabel("Answer: " + answerDisplay);
+                answerLabel.setFont(answerLabel.getFont().deriveFont(Font.PLAIN, 11f));
+                answerLabel.setForeground((answerValue != null && !answerValue.trim().isEmpty()) 
+                    ? Color.BLACK 
+                    : Color.GRAY);
+                questionPanel.add(answerLabel);
+                
+                caseDetailContentPanel.add(questionPanel);
+                caseDetailContentPanel.add(Box.createVerticalStrut(10));
+                questionNumber++;
+            }
+        } else {
+            JLabel noQuestionsLabel = new JLabel("No form questions available.");
+            noQuestionsLabel.setFont(noQuestionsLabel.getFont().deriveFont(Font.PLAIN, 12f));
+            noQuestionsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            caseDetailContentPanel.add(noQuestionsLabel);
+        }
+        
+        caseDetailContentPanel.revalidate();
+        caseDetailContentPanel.repaint();
+        
+        // Show the detail view
+        cardLayout.show(cardPanel, "caseDetail");
+    }
+    
+    private void approveCase(Case caseObj) {
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to approve this case?\nCase Code: " + caseObj.getCode(),
+            "Confirm Approval",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            caseObj.setStatus(CaseStatus.ACCEPTED);
+            controller.getDataStore().saveCase(caseObj);
+            JOptionPane.showMessageDialog(this, "Case approved successfully.", "Success", JOptionPane.INFORMATION_MESSAGE);
+            showDashboardView();
+        }
+    }
+    
+    private void showAddQuestionsToForm(Case caseObj) {
+        controller.showAddQuestionsToForm(caseObj);
+    }
 
     private void showDashboardView() {
         loadCases();
@@ -410,6 +639,16 @@ public class AdminDashboardPanel extends JPanel {
     public void showTemplatesViewAndRefresh() {
         loadTemplates();
         cardLayout.show(cardPanel, "templates");
+    }
+    
+    // Public method to refresh and show case detail view
+    public void refreshAndShowCaseDetail(Case caseObj) {
+        if (caseObj != null) {
+            showCaseDetail(caseObj);
+        } else if (currentViewingCase != null) {
+            // Refresh the currently viewing case
+            showCaseDetail(currentViewingCase);
+        }
     }
 }
 

@@ -14,6 +14,7 @@ public class MainWindow extends JFrame {
     private CustomerFormPanel customerFormPanel;
     private FormBuilderPanel formBuilderPanel;
     private CaseBuilderPanel caseBuilderPanel;
+    private panels.AddQuestionsToFormPanel addQuestionsToFormPanel;
     
     public MainWindow(AppController controller) {
         this.controller = controller;
@@ -30,6 +31,7 @@ public class MainWindow extends JFrame {
         this.customerFormPanel = new CustomerFormPanel(controller);
         this.formBuilderPanel = new FormBuilderPanel(controller);
         this.caseBuilderPanel = new CaseBuilderPanel(controller);
+        this.addQuestionsToFormPanel = new panels.AddQuestionsToFormPanel(controller);
         
         add(roleSelectionPanel, "RoleSelection");
         add(adminLoginPanel, "AdminLogin");
@@ -38,6 +40,7 @@ public class MainWindow extends JFrame {
         add(customerFormPanel, "CustomerForm");
         add(formBuilderPanel, "FormBuilder");
         add(caseBuilderPanel, "CaseBuilder");
+        add(addQuestionsToFormPanel, "AddQuestionsToForm");
         
         setVisible(true);
     }
@@ -72,6 +75,16 @@ public class MainWindow extends JFrame {
     public void showCaseBuilder() {
         caseBuilderPanel.refreshTemplates();
         cardLayout.show(getContentPane(), "CaseBuilder");
+    }
+    
+    public void showCustomerForm() {
+        customerFormPanel.loadCase();
+        cardLayout.show(getContentPane(), "CustomerForm");
+    }
+    
+    public void showAddQuestionsToForm(model.Case caseObj) {
+        addQuestionsToFormPanel.loadCase(caseObj);
+        cardLayout.show(getContentPane(), "AddQuestionsToForm");
     }
     
     public AdminDashboardPanel getAdminDashboardPanel() {

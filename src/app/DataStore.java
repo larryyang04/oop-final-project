@@ -49,8 +49,8 @@ public class DataStore {
     
     public void loadFromDisk() {
         loadFormTemplatesFromJson();
-        loadFormsFromJson();
         loadCasesFromJson();
+        loadFormsFromJson();
     }
     
     private void loadFormTemplatesFromJson() {
@@ -241,6 +241,17 @@ public class DataStore {
     public Case findCaseByCode(String code) {
         for (Case c : cases) {
             if (c.getCode().equals(code)) {
+                return c;
+            }
+        }
+        return null;
+    }
+    
+    public Case findCaseByCredentials(String firstName, String lastName, String code) {
+        for (Case c : cases) {
+            if (c.getFirstName().equalsIgnoreCase(firstName.trim()) &&
+                c.getLastName().equalsIgnoreCase(lastName.trim()) &&
+                c.getCode().equalsIgnoreCase(code.trim())) {
                 return c;
             }
         }

@@ -1,5 +1,9 @@
+import app.AppController;
+
 public class App {
     public static void main(String[] args) throws Exception {
-        System.out.println("Hello, World!");
+        AppController controller = new AppController();
+        controller.start();
+        controller.showRoleSelection();
     }
 }

@@ -25,7 +25,7 @@ Larry Yang ([GitHub](https://github.com/larryyang04))
     `
     git@github.com:larryyang04/oop-final-project.git
     `
-2. Run
+2. With your current working directory as the project's root directory, run:
 
     `
     make run

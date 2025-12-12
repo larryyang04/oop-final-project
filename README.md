@@ -30,3 +30,15 @@ Larry Yang ([GitHub](https://github.com/larryyang04))
     `
     make run
     `
+
+Note: the default admin login credentials are:
+
+`
+Username: james
+`
+
+`
+Password: james
+`
+
+These can be changed by editing the JSON file `./src/database/admin.json`

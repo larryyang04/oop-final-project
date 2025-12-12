@@ -57,6 +57,16 @@ public class AdminDashboardPanel extends JPanel {
         JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
+        // back button
+        JButton backButton = new JButton("← Back to Login");
+        backButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                controller.showAdminLogin();
+            }
+        });
+        headerPanel.add(backButton);
+
         JLabel titleLabel = new JLabel("Admin Dashboard");
         titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 24f));
         headerPanel.add(titleLabel);
